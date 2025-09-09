@@ -226,24 +226,30 @@ class HL7Server:
         
         try:
             with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-                # Define CSV headers (excluding patient info)
-                fieldnames = ['Test_Code', 'Test_Name', 'Result_Value', 'Units', 'Reference_Range', 'Status']
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer = csv.writer(csvfile)
                 
-                # Write header
-                writer.writeheader()
+                # Write patient information at the top
+                writer.writerow(['Patient Information'])
+                writer.writerow(['Patient Name:', patient_name])
+                writer.writerow(['Specimen ID:', specimen_id])
+                writer.writerow(['Timestamp:', datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                writer.writerow([])  # Empty row for separation
+                
+                # Define CSV headers for lab results
+                fieldnames = ['Test_Code', 'Test_Name', 'Result_Value', 'Units', 'Reference_Range', 'Status']
+                writer.writerow(fieldnames)
                 
                 # Write lab results
                 for result in lab_results:
                     if result['test_code'] and result['test_value']:
-                        writer.writerow({
-                            'Test_Code': result['test_code'],
-                            'Test_Name': self.get_test_name(result['test_code']),
-                            'Result_Value': result['test_value'],
-                            'Units': result['units'],
-                            'Reference_Range': result['reference_range'],
-                            'Status': result['status']
-                        })
+                        writer.writerow([
+                            result['test_code'],
+                            self.get_test_name(result['test_code']),
+                            result['test_value'],
+                            result['units'],
+                            result['reference_range'],
+                            result['status']
+                        ])
                 
             logging.info(f"Lab results saved to CSV: {filename}")
             logging.info(f"Total tests saved: {len([r for r in lab_results if r['test_code'] and r['test_value']])}")
